@@ -1,0 +1,51 @@
+---
+clusterName: "elasticsearch"
+nodeGroup: "worker"
+
+masterService: "elasticsearch-master"
+
+nodeSelector:
+  kubernetes.io/hostname: node-worker
+
+
+# This should be set to clusterName + "-" + nodeGroup for your worker group
+role:
+  - data
+  - data_content
+  - ml
+
+
+replicas: 1
+minimumMasterNodes: 1
+
+esMajorVersion: ""
+
+esConfig:
+  elasticsearch.yaml: |
+    discovery.seed_hosts:
+      - elasticsearch-master-0
+    cluster.initial_master_nodes:
+      - elasticsearch-master-0
+
+image: "docker.elastic.co/elasticsearch/elasticsearch"
+imageTag: "8.5.1"
+imagePullPullpolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "4Gi"
+  limits:
+    cpu: "1000m"
+    memory: "4Gi"
+
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  resources: 
+    requests:
+      storage: 30Gi
+
+service:
+  type: ClusterIP
+
+  

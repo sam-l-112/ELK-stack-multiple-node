@@ -1,0 +1,253 @@
+---
+- name: Install k3s and configure kubeconfig
+  hosts: all[0]
+  become: true
+  gather_facts: false
+  vars:
+    ansible_user: ubuntu
+  tasks:
+    - name: Remove old k3s if exists
+      shell: |
+        if [ -f /usr/local/bin/k3s-uninstall.sh ]; then
+          sudo /usr/local/bin/k3s-uninstall.sh
+        fi
+      ignore_errors: yes
+
+    - name: Install k3s using official script
+      shell: curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--tls-san {{ ansible_host }}" sh - 
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Debug k3s server IP  
+      debug:
+        var: ansible_host
+
+    - name: 檢查 K3s 是否安裝成功並啟動
+      command: systemctl status k3s
+      register: k3s_status
+      failed_when: k3s_status.rc != 0
+      changed_when: false
+      ignore_errors: yes
+
+    - name: 確認 K3s 是否啟動
+      debug:
+        msg: "K3s service is running"
+      when: k3s_status is defined and k3s_status.rc == 0
+
+    - name: 讀取 node-token
+      shell: sudo cat /var/lib/rancher/k3s/server/node-token
+      register: node_token
+      failed_when: node_token.stdout == ""
+
+    - name: 顯示 token
+      debug:
+        var: node_token.stdout
+
+    # - name: k3s agent add cluster 0
+    #   add_host:
+    #     name: "{{ item }}"
+    #     k3s_token: "{{ node_token.stdout }}"
+    #     k3s_master_ip: "{{ ansible_host }}"
+    #   loop: "{{ groups['k3s_agent'] }}"
+
+  # KUBECONFIG 環境變數設定
+    - name: 建立 ~/.k3s 目錄
+      become: false
+      file:
+        path: "/home/{{ ansible_user }}/.k3s"
+        state: directory
+        mode: "0755"
+
+    - name: 讀取 node-token
+      shell: sudo cat /var/lib/rancher/k3s/server/node-token
+      register: node_token
+      failed_when: node_token.stdout == ""
+      vars:
+        node_token: node_token.stdout
+
+    - name: 複製 kubeconfig 到使用者目錄
+      copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: "/home/{{ ansible_user }}/.k3s/k3s.yaml"
+        remote_src: yes
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+
+    - name: Set KUBECONFIG environment variable in .bashrc
+      lineinfile:
+        path: "/home/{{ ansible_user }}/.bashrc"
+        line: 'export KUBECONFIG=$HOME/.k3s/k3s.yaml'
+        state: present
+      become: false 
+
+    - name: Enable kubectl autocompletion in .bashrc
+      lineinfile:
+        path: "/home/{{ ansible_user }}/.bashrc"
+        line: 'source <(kubectl completion bash)'
+        state: present
+      become: false
+
+    - name: Add kubectl alias to .bashrc
+      lineinfile:
+        path: "/home/{{ ansible_user }}/.bashrc"
+        line: 'alias k=kubectl'
+        state: present
+      become: false
+
+    - name: Add kubectl completion for alias k to .bashrc
+      lineinfile:
+        path: "/home/{{ ansible_user }}/.bashrc"
+        line: 'complete -F __start_kubectl k'
+        state: present
+      become: false
+
+    - name: Add kubectl completion for alias k to .bashrc
+      lineinfile:
+        path: "/home/ubuntu/.bashrc"
+        line: 'complete -F __start_kubectl k'
+        state: present
+      become: no
+
+    - name: Display all pods in all namespaces
+      shell: kubectl get pod -A
+      environment:
+        KUBECONFIG: "/home/ubuntu/.k3s/k3s.yaml"
+      register: pods_output
+      changed_when: false
+
+    - name: Install Helm using official script
+      shell: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Add elastic Helm repo
+      shell: helm repo add elastic https://helm.elastic.co
+      args:
+        creates: /home/ubuntu/.cache/helm/repository/elastic-index.yaml
+      become: false
+
+    - name: Update Helm repos
+      shell: helm repo update
+      become: false
+
+# Install k3s agent on worker nodes
+- name: Install k3s agent
+  hosts: all[1:]  # 使用第二台及之後的機器作為 worker
+  become: true
+  gather_facts: false
+  vars:
+    ansible_user: ubuntu
+    k3s_token: "{{ hostvars[groups['k3s_server'][0]].node_token.stdout }}" # 從 k3s server 獲取 token
+    k3s_server: "{{ groups['k3s_server'] | first }}"  # 獲取第一個 k3s server 的 IP
+    # 移除 k3s_agent_ip_1, k3s_agent_ip_2，直接在 debug 用 inventory_hostname
+  tasks:
+    - name: Remove old k3s if exists
+      shell: |
+        if [ -f /usr/local/bin/k3s-agent-uninstall.sh ]; then
+          sudo /usr/local/bin/k3s-agent-uninstall.sh
+        fi
+      ignore_errors: yes
+      
+    # - name: 確認 k3s server 是否可連線
+    #   shell: |
+    #     curl -ksSfL "https://{{ k3s_server }}:6443" -H "Authorization: Bearer {{ k3s_token }}"
+    #   register: k3s_server_connection
+    #   ignore_errors: yes
+
+    - name: 確認 k3s server 6443 port 是否可連線
+      shell: curl -ksSfL https://{{ k3s_server }}:6443 || echo "fail"
+      register: k3s_server_connection
+      ignore_errors: yes
+
+    - name: 顯示 worker IP 與 token
+      debug:
+        msg: "Worker IP: {{ inventory_hostname }}, Server: {{ k3s_server }}, Token: {{ k3s_token }}"
+
+    - name: Install k3s agent using official script
+      shell: |
+        curl -sfL https://get.k3s.io | K3S_URL="https://{{ k3s_server }}:6443" K3S_TOKEN="{{ k3s_token }}" sh -
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Debug k3s agent IP  
+      debug:
+        var: k3s_agent
+
+    - name: Debug groups
+      debug:
+        var: groups
+
+    - name: 確認 agent 是否啟動
+      debug:
+        msg: "{{ item }} K3s Agent is running"
+      loop: "{{ groups['k3s_agent'] }}"
+
+# 1. 從 server 拉 kubeconfig 到本機
+- name: Fetch kubeconfig from k3s server
+  hosts: all[0]
+  become: true
+  tasks:
+    - name: Fetch k3s.yaml to controller
+      fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /tmp/k3s.yaml
+        flat: yes
+
+# 2. 分發 kubeconfig 到所有 agent
+- name: Distribute kubeconfig to all nodes
+  hosts: all[1:]
+  become: true
+  vars:
+    k3s_server: "{{ groups['k3s_server'] | first }}"
+  tasks:
+    - name: Ensure .k3s directory exists on agent
+      file:
+        path: /home/ubuntu/.k3s
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Copy kubeconfig to agent node
+      copy:
+        src: /tmp/k3s.yaml
+        dest: /home/ubuntu/.k3s/k3s.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Replace server IP in kubeconfig on agent
+      replace:
+        path: /home/ubuntu/.k3s/k3s.yaml
+        regexp: 'server: https://127.0.0.1:6443'
+        replace: 'server: https://{{ k3s_server }}:6443'
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+        # - name: Display all pods in all namespaces
+        #   shell: kubectl get pod -A
+        #   environment:
+        #     KUBECONFIG: "/home/{{ ansible_user }}/.k3s/k3s.yaml"
+        #   register: pods_output
+        #   changed_when: false
+
+        # - name: Install Helm using official script
+        #   shell: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        #   args:
+        #     creates: /usr/local/bin/helm
+
+        # - name: Add elastic Helm repo
+        #   shell: helm repo add elastic https://helm.elastic.co
+        #   args:
+        #     creates: /home/{{ ansible_user }}/.cache/helm/repository/elastic-index.yaml
+        #   become: false
+
+        # - name: Update Helm repos
+        #   shell: helm repo update
+        #   become: false
+
+
+
+
