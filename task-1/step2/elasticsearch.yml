@@ -10,17 +10,17 @@ spec:
     count: 1
     config:
       node.roles: ["master"]
-
-  volumeClaimTemplates:
+    volumeClaimTemplates:
   - metadata:
-      name: elasticsearch-data
+        name: elasticsearch-data
     spec:
       accessModes:
-      - ReadWriteOnce
+        - ReadWriteOnce
       resources:
         requests:
           storage: 10Gi
       storageClassName: standard
+
   - name: data-node
     count: 1
     config:
@@ -30,7 +30,7 @@ spec:
         name: elasticsearch-data
       spec:
         accessModes:
-        - ReadWriteOnce
+          - ReadWriteOnce
         resources:
           requests:
             storage: 1000Gi

@@ -45,4 +45,4 @@ volumeClaimTemplate:
       storage: 30Gi
 
 service:
-  type: Cluster IP
+  type: ClusterIP

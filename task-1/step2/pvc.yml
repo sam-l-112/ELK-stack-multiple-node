@@ -15,7 +15,7 @@ spec:
   volumeMode: Filesystem
 ---
 apiVersion: v1
-kind: PersisterntVolume
+kind: PersistentVolume
 metadata:
   name: pv-quickstart-data-0
 spec:
