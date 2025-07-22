@@ -31,7 +31,7 @@ spec:
     podTemplate:
       spec:
         nodeSelector:
-          kubernetes.io/hostname: node-data-5361855-iaas.novalocal  # change here
+          kubernetes.io/hostname: data node name  # change here   ✅正確的 data node hostname
     volumeClaimTemplates:
     - metadata:
         name: elasticsearch-data

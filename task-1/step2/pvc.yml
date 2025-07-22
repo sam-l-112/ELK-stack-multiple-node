@@ -38,7 +38,7 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - node-data-5361855-iaas.novalocal # change here
+          - data node name # change here   ✅正確的 data node hostname
   claimRef:
     name: elasticsearch-data-quickstart-es-data-node-0
     namespace: default
