@@ -1,4 +1,4 @@
-###　update pvc.yml
+### update pvc.yml
 - 綁定master node and data node 名稱為
 
 ```yaml
