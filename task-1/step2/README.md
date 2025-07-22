@@ -48,6 +48,9 @@ podTemplate:
         nodeSelector:
           kubernetes.io/hostname: data node name  # change here   ✅正確的 data node hostname
 ```
+
+---
+
 ### update elasticsearch.yml 
 - Pod 雖然正常排程、PVC 有綁定，但容器無法寫入 /usr/share/elasticsearch/data。
 - 你可以在 podTemplate.spec 中加入這段 initContainer，用來修改 Elasticsearch 寫入資料的目錄權限：
