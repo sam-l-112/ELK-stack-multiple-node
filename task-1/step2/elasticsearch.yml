@@ -15,7 +15,7 @@ spec:
           name: elasticsearch-data
         spec:
           accessModes:
-          - ReadWriteOnce
+            - ReadWriteOnce
           resources:
             requests:
               storage: 10Gi
@@ -25,12 +25,30 @@ spec:
     count: 1
     config:
       node.roles: ["data", "ingest", "ml"]
+      # 指定此 nodeSet 的 Pod 只會被排程到指定的節點（node-data-5361855-iaas.novalocal）
+      # 這樣可以確保 data-node 只會在特定主機上運行，通常用於本地存儲或特殊硬體需求
+      # nodeSelector 需與 PV 的 nodeAffinity 設定一致，才能正確綁定 PVC
+    podTemplate:
+      spec:
+        nodeSelector:
+          kubernetes.io/hostname: data node name  # change here
+        securityContext:  # 設定 Pod 的安全上下文
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+        initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          volumeMounts:
+          - name: elasticsearch-data
+            mountPath: /usr/share/elasticsearch/data  # 挂载数据卷到容器内
     volumeClaimTemplates:
     - metadata:
         name: elasticsearch-data
       spec:
         accessModes:
-        - ReadWriteOnce
+          - ReadWriteOnce
         resources:
           requests:
             storage: 1000Gi

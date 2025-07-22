@@ -29,6 +29,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   local:
     path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-data/
+    type: DirectoryOrCreate
   nodeAffinity:
     required:
       nodeSelectorTerms:

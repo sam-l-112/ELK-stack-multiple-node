@@ -69,3 +69,12 @@ podTemplate:
           - name: elasticsearch-data
             mountPath: /usr/share/elasticsearch/data
 ```
+
+### update pvc.yaml
+
+
+```yaml
+local:
+    path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-data/
+    type: DirectoryOrCreate
+```
