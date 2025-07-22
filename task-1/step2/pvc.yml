@@ -13,9 +13,7 @@ spec:
     path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-master/
   persistentVolumeReclaimPolicy: Retain
   volumeMode: Filesystem
-  claimRef:
-    name: elasticsearch-data-quickstart-es-master-node-0
-    namespace: default
+  
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -39,6 +37,3 @@ spec:
           operator: In
           values:
           - data node name # change here   ✅正確的 data node hostname
-  claimRef:
-    name: elasticsearch-data-quickstart-es-data-node-0
-    namespace: default
