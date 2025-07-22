@@ -48,3 +48,21 @@ podTemplate:
         nodeSelector:
           kubernetes.io/hostname: data node name  # change here   ✅正確的 data node hostname
 ```
+### update elasticsearch.yml 
+- Pod 雖然正常排程、PVC 有綁定，但容器無法寫入 /usr/share/elasticsearch/data。
+- 你可以在 podTemplate.spec 中加入這段 initContainer，用來修改 Elasticsearch 寫入資料的目錄權限：
+- name: elasticsearch-data 要跟你的 volumeClaimTemplates.metadata.name 一致。
+
+```yaml
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+        initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          volumeMounts:
+          - name: elasticsearch-data
+            mountPath: /usr/share/elasticsearch/data
+```
