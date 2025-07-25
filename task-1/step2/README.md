@@ -78,3 +78,11 @@ local:
     path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-data/
     type: DirectoryOrCreate
 ```
+
+### update elasticsearch.yml 發現master
+- 用於發現 master 節點
+
+```yaml
+cluster.name: "quickstart"  # 集群名稱
+      discovery.seed_hosts: ["quickstart-es-master-node-0"] # 用於發現 master 節點
+```
