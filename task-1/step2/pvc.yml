@@ -13,10 +13,72 @@ spec:
     path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-master/
   persistentVolumeReclaimPolicy: Retain
   volumeMode: Filesystem
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master node name # change here   ✅正確的 master node hostname
   claimRef:
     name: elasticsearch-data-quickstart-es-master-node-0
     namespace: default
   
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-master-1
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard
+  hostPath:
+    path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-master/
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master node name # change here   ✅正確的 master node hostname
+  claimRef:
+    name: elasticsearch-data-quickstart-es-master-node-1
+    namespace: default
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-master-2
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard
+  hostPath:
+    path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-master/
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master node name # change here   ✅正確的 master node hostname
+  claimRef:
+    name: elasticsearch-data-quickstart-es-master-node-2
+    namespace: default
+
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -42,4 +104,58 @@ spec:
           - data node name # change here   ✅正確的 data node hostname
   claimRef:
     name: elasticsearch-data-quickstart-es-data-node-0
+    namespace: default
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-quickstart-data-1
+spec:
+  capacity:
+    storage: 1000Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard
+  volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Retain
+  local:
+    path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-data/
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:               
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - data node name # change here   ✅正確的 data node hostname
+  claimRef:
+    name: elasticsearch-data-quickstart-es-data-node-1
+    namespace: default
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-quickstart-data-2
+spec:
+  capacity:
+    storage: 1000Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard
+  volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Retain
+  local:
+    path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-data/
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:               
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - data node name # change here   ✅正確的 data node hostname
+  claimRef:
+    name: elasticsearch-data-quickstart-es-data-node-2
     namespace: default
