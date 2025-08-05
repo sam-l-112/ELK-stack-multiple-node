@@ -14,6 +14,19 @@ spec:
       # 這裡用 headless service 名稱，不用帶 pod 名稱
       discovery.seed_hosts: ["quickstart-es-master-node"]
       cluster.initial_master_nodes: ["quickstart-es-master-node-0"]
+    # podTemplate:
+    #   spec:
+    #     securityContext:
+    #       runAsUser: 1000
+    #       runAsGroup: 1000
+    #       fsGroup: 1000
+    #     initContainers:
+    #     - name: fix-permissions
+    #       image: busybox
+    #       command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+    #       volumeMounts:
+    #       - name: elasticsearch-data
+    #         mountPath: /usr/share/elasticsearch/data
     volumeClaimTemplates:
       - metadata:
           name: elasticsearch-data
