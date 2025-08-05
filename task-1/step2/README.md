@@ -87,6 +87,8 @@ cluster.name: "quickstart"  # 集群名稱
       discovery.seed_hosts: ["quickstart-es-master-node-0"] # 用於發現 master 節點
 ```
 
+---
+
 ### update elasticsearch.yml and pvc.yml 
 - pvc.yml 所更新的內容有3 master node and 3 worker node 問題
 - master node ex:
@@ -119,6 +121,9 @@ spec:
     name: elasticsearch-data-quickstart-es-master-node-0
     namespace: default
 ```
+
+---
+
 - update name 0 、 1 、 2 做三個master node and worker node 
 ```yml
 metadata:
