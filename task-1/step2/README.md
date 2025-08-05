@@ -70,6 +70,8 @@ podTemplate:
             mountPath: /usr/share/elasticsearch/data
 ```
 
+---
+
 ### update pvc.yaml
 
 
@@ -121,8 +123,6 @@ spec:
     name: elasticsearch-data-quickstart-es-master-node-0
     namespace: default
 ```
-
----
 
 - update name 0 、 1 、 2 做三個master node and worker node 
 ```yml
