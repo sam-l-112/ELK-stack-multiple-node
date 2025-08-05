@@ -93,7 +93,7 @@ cluster.name: "quickstart"  # 集群名稱
 
 ### update elasticsearch.yml and pvc.yml 
 - pvc.yml 所更新的內容有3 master node and 3 worker node 問題
-- master node ex:
+- master node ex :
 ```yml
 ---
 apiVersion: v1
