@@ -86,3 +86,87 @@ local:
 cluster.name: "quickstart"  # 集群名稱
       discovery.seed_hosts: ["quickstart-es-master-node-0"] # 用於發現 master 節點
 ```
+
+### update elasticsearch.yml and pvc.yml 
+- pvc.yml 所更新的內容有3 master node and 3 worker node 問題
+- master node ex:
+```yml
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-master-0
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard
+  hostPath:
+    path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-master/
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master node name 
+          # change here   ✅正確的 master node hostname
+  claimRef:
+    name: elasticsearch-data-quickstart-es-master-node-0
+    namespace: default
+```
+- update name 0 、 1 、 2 做三個master node and worker node 
+```yml
+metadata:
+  name: pv-quickstart-data-0
+```
+- worker node ex:
+```yml
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-quickstart-data-0
+spec:
+  capacity:
+    storage: 1000Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard
+  volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Retain
+  local:
+    path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-data/
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:               
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - data node name 
+          # change here   ✅正確的 data node hostname
+```
+- elasticsearch update is count :３
+- master node 
+```yml
+spec:
+  version: 8.16.1
+  nodeSets:
+  - name: master-node
+    count: 3
+    config:
+      node.roles: ["master"]
+      cluster.name: "quickstart"
+```
+
+- worker node 
+```yml 
+    count: 3
+    config:
+      node.roles: ["data" , "ingest", "ml"]
+```

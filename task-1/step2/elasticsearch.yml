@@ -25,38 +25,57 @@ spec:
               storage: 10Gi
           storageClassName: standard
 
-  - name: data-node
+  - name: data-nodes
     count: 3
     config:
-      node.roles: ["data" , "ingest" , "ml"]
-      cluster.name: "quickstart"  # 集群名稱
-      discovery.seed_hosts: ["quickstart-es-master-node"]
-      cluster.initial_master_nodes: ["quickstart-es-master-node-0"] # 用於發現 master 節點
-      # 指定此 nodeSet 的 Pod 只會被排程到指定的節點（node-data-5361855-iaas.novalocal）
-      # 這樣可以確保 data-node 只會在特定主機上運行，通常用於本地存儲或特殊硬體需求
-      # nodeSelector 需與 PV 的 nodeAffinity 設定一致，才能正確綁定 PVC
-    podTemplate:
-      spec:
-        nodeSelector:
-          kubernetes.io/hostname: data node name  # change here
-        securityContext:  # 設定 Pod 的安全上下文
-          runAsUser: 1000
-          runAsGroup: 1000
-          fsGroup: 1000
-        initContainers:
-        - name: fix-permissions
-          image: busybox
-          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
-          volumeMounts:
-          - name: elasticsearch-data
-            mountPath: /usr/share/elasticsearch/data  # 挂载数据卷到容器内
+      node.roles: ["data" , "ingest", "ml"]
     volumeClaimTemplates:
     - metadata:
         name: elasticsearch-data
       spec:
         accessModes:
-          - ReadWriteOnce
+        - ReadWriteOnce
         resources:
           requests:
             storage: 1000Gi
         storageClassName: standard
+
+  # - name: data-node
+  #   count: 3
+  #   config:
+  #     node.roles: ["data" , "ingest" , "ml"]
+  #     cluster.name: "quickstart"  
+  #     # 集群名稱
+  #     discovery.seed_hosts: ["quickstart-es-master-node"]
+  #     #cluster.initial_master_nodes: ["quickstart-es-master-node-0"] # 用於發現 master 節點
+  #     # 指定此 nodeSet 的 Pod 只會被排程到指定的節點（node-data-5361855-iaas.novalocal）
+  #     # 這樣可以確保 data-node 只會在特定主機上運行，通常用於本地存儲或特殊硬體需求
+  #     # nodeSelector 需與 PV 的 nodeAffinity 設定一致，才能正確綁定 PVC
+  #   podTemplate:
+  #     spec:
+  #       nodeSelector:
+  #         kubernetes.io/hostname: data node name  
+  #         # change here ✅正確的 master node hostname
+  #       securityContext:  
+  #       # 設定 Pod 的安全上下文
+  #         runAsUser: 1000
+  #         runAsGroup: 1000
+  #         fsGroup: 1000
+  #       initContainers:
+  #       - name: fix-permissions
+  #         image: busybox
+  #         command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+  #         volumeMounts:
+  #         - name: elasticsearch-data
+  #           mountPath: /usr/share/elasticsearch/data  
+  #           # 挂载数据卷到容器内
+  #   volumeClaimTemplates:
+  #   - metadata:
+  #       name: elasticsearch-data
+  #     spec:
+  #       accessModes:
+  #         - ReadWriteOnce
+  #       resources:
+  #         requests:
+  #           storage: 1000Gi
+  #       storageClassName: standard
