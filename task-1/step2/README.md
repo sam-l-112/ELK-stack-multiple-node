@@ -170,3 +170,12 @@ spec:
     config:
       node.roles: ["data" , "ingest", "ml"]
 ```
+
+- 指定群組
+```yml
+      node.roles: ["master"]
+      cluster.name: "quickstart"
+      # 這裡用 headless service 名稱，不用帶 pod 名稱
+      discovery.seed_hosts: ["quickstart-es-master-node"]
+      cluster.initial_master_nodes: ["quickstart-es-master-node-0"]
+```
