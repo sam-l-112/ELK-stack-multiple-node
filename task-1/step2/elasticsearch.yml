@@ -14,19 +14,6 @@ spec:
       # 這裡用 headless service 名稱，不用帶 pod 名稱
       discovery.seed_hosts: ["quickstart-es-master-node"]
       cluster.initial_master_nodes: ["quickstart-es-master-node-0"]
-    # podTemplate:
-    #   spec:
-    #     securityContext:
-    #       runAsUser: 1000
-    #       runAsGroup: 1000
-    #       fsGroup: 1000
-    #     initContainers:
-    #     - name: fix-permissions
-    #       image: busybox
-    #       command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
-    #       volumeMounts:
-    #       - name: elasticsearch-data
-    #         mountPath: /usr/share/elasticsearch/data
     volumeClaimTemplates:
       - metadata:
           name: elasticsearch-data
@@ -143,3 +130,26 @@ spec:
   #         requests:
   #           storage: 1000Gi
   #       storageClassName: standard
+
+#       # 指定使用的 StorageClass，以選擇動態供應或靜態 PV
+#       # storageClassName: standard
+#       # 這裡的 storageClassName 必須與 PVC 的 storageClassName
+#       # 相同，否則 Pod 可能無法正確綁定到 PVC
+#       # 並且 Pod 可能會因為找不到資料卷而無法啟動
+#       # 如果不指定 storageClassName，則會使用叢集的預設 StorageClass
+#       # 這樣可以確保 Pod 啟動時能夠正確掛載資料卷
+#       # 並且可以在 Pod 啟動後自動創建 PVC
+#       # 這樣可以確保 Pod 啟動時能夠正確掛載資料卷
+    # podTemplate:
+    #   spec:
+    #     securityContext:
+    #       runAsUser: 1000
+    #       runAsGroup: 1000
+    #       fsGroup: 1000
+    #     initContainers:
+    #     - name: fix-permissions
+    #       image: busybox
+    #       command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+    #       volumeMounts:
+    #       - name: elasticsearch-data
+    #         mountPath: /usr/share/elasticsearch/data
