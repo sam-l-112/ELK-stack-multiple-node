@@ -27,7 +27,105 @@ spec:
             - port: 5044
               name: "filebeat"
               protocol: TCP
-          # selector: {}
+
+  podTemplate:
+    spec:
+      containers:
+        - name: logstash
+          env:
+            - name: ES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logstash-es-creds
+                  key: ES_PASSWORD
+          volumeMounts:
+            - name: elasticsearch-certs
+              mountPath: /usr/share/logstash/config/certs
+              readOnly: true
+            - name: pipeline-files
+              mountPath: /usr/share/logstash/pipeline
+      volumes:
+        - name: elasticsearch-certs
+          secret:
+            secretName: quickstart-es-http-certs-public
+        - name: pipeline-files
+          configMap:
+            name: logstash-pipeline-files
+
+  config:
+    log.level: info
+    path.config: /usr/share/logstash/pipeline
+  pipelines:
+    - pipeline.id: main
+      config.string: |
+        input {
+          generator {
+            message => "Hello world!"
+            count => 0
+            threads => 10
+          }
+          beats {
+            port => 5044
+          }
+        }
+        output {
+          elasticsearch {
+             hosts => ["https://quickstart-es-http.default.svc:9200"]
+            index => "logstash-%{+YYYY.MM.dd}"
+            user => "elastic"
+            password => "${ES_PASSWORD}"
+            ssl => true
+            cacert => "/usr/share/logstash/config/certs/ca.crt"
+          }
+        }
+  
+
+
+
+
+
+
+---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: quickstart-config
+# stringData:
+#   logstash.yml: |-
+#     pipeline.workers: 4
+#     log.level: debug
+
+
+
+# node.name: logstash-node1
+# pipeline.workers: 4
+# http.host: "0.0.0.0"
+# xpack.monitoring.elasticsearch.hosts: [ "http://elasticsearch:9200" ]
+
+
+# output.logstash:
+#   hosts: ["logstash1:5044", "logstash2:5044", "logstash3:5044"]
+#   loadbalance: true
+
+#  podTemplate:
+#     spec:
+#       containers:
+#         - name: logstash
+#           volumeMounts:
+#             - name: certs
+#               mountPath: /usr/share/logstash/config/certs
+#           env:
+#             - name: ES_PASSWORD
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: logstash-es-creds
+#                   key: ES_PASSWORD
+#       volumes:
+#         - name: certs
+#           secret:
+#             secretName: quickstart-es-http-certs-public
+
+    # selector: {}
 
    # 自訂 Pod（掛 env、volume、mount）
   # podTemplate:
@@ -93,94 +191,3 @@ spec:
   #     - name: elasticsearch-certs
   #       secret:
   #         secretName: quickstart-es-http-certs-public
-
-  podTemplate:
-  spec:
-    containers:
-      - name: logstash
-        env:
-          - name: ES_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: logstash-es-creds
-                key: ES_PASSWORD
-        volumeMounts:
-          - name: elasticsearch-certs
-            mountPath: /usr/share/logstash/config/certs
-            readOnly: true
-          - name: pipeline-files
-            mountPath: /usr/share/logstash/pipeline
-    volumes:
-      - name: elasticsearch-certs
-        secret:
-          secretName: quickstart-es-http-certs-public
-      - name: pipeline-files
-        configMap:
-          name: logstash-pipeline-files
-
-  config:
-    log.level: info
-    path.config: /usr/share/logstash/pipeline
-  pipelines:
-    - pipeline.id: main
-      config.string: |
-        input {
-          generator {
-            message => "Hello world!"
-            count => 0
-            threads => 10
-          }
-          beats {
-            port => 5044
-          }
-        }
-        output {
-          elasticsearch {
-             hosts => ["https://quickstart-es-http.default.svc:9200"]
-            index => "logstash-%{+YYYY.MM.dd}"
-            user => "elastic"
-            password => "${ES_PASSWORD}"
-            ssl => true
-            cacert => "/usr/share/logstash/config/certs/ca.crt"
-          }
-        }
-  
----
-# apiVersion: v1
-# kind: Secret
-# metadata:
-#   name: quickstart-config
-# stringData:
-#   logstash.yml: |-
-#     pipeline.workers: 4
-#     log.level: debug
-
-
-
-# node.name: logstash-node1
-# pipeline.workers: 4
-# http.host: "0.0.0.0"
-# xpack.monitoring.elasticsearch.hosts: [ "http://elasticsearch:9200" ]
-
-
-# output.logstash:
-#   hosts: ["logstash1:5044", "logstash2:5044", "logstash3:5044"]
-#   loadbalance: true
-
-#  podTemplate:
-#     spec:
-#       containers:
-#         - name: logstash
-#           volumeMounts:
-#             - name: certs
-#               mountPath: /usr/share/logstash/config/certs
-#           env:
-#             - name: ES_PASSWORD
-#               valueFrom:
-#                 secretKeyRef:
-#                   name: logstash-es-creds
-#                   key: ES_PASSWORD
-#       volumes:
-#         - name: certs
-#           secret:
-#             secretName: quickstart-es-http-certs-public
