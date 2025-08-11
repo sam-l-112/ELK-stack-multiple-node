@@ -36,7 +36,7 @@ spec:
             - name: ES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: logstash-es-creds
+                  name: quickstart-ls-default-quickstart-logstash-user
                   key: ES_PASSWORD
           volumeMounts:
             - name: elasticsearch-certs
@@ -47,7 +47,7 @@ spec:
       volumes:
         - name: elasticsearch-certs
           secret:
-            secretName: quickstart-es-http-certs-public
+            secretName: quickstart-ls-logstash-es-default-quickstart-ca
         - name: pipeline-files
           configMap:
             name: logstash-pipeline-files
