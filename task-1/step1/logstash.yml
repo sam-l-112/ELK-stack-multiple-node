@@ -12,9 +12,10 @@ spec:
   # pipelinesRef:
   #   secretName: logstash-pipelines
 
-  elasticsearchRef:
-    name: quickstart
-    clusterName: quickstart
+  elasticsearchRefs:
+    - name: quickstart
+      namespace: default
+      clusterName: es-default
     # clusterName: es-default   
 
   services:
