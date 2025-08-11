@@ -7,16 +7,10 @@ spec:
   version: 8.16.1
   count: 3
 
-  # configRef:
-  #   secretName: logstash-config
-  # pipelinesRef:
-  #   secretName: logstash-pipelines
-
   elasticsearchRefs:
     - name: quickstart
       namespace: default
-      clusterName: es-default
-    # clusterName: es-default   
+      clusterName: es-default   
 
   services:
     - name: beats
@@ -37,7 +31,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: quickstart-ls-default-quickstart-logstash-user
-                  key: elastic
+                  key: default-quickstart-ls-default-quickstart-logstash-user
           volumeMounts:
             - name: elasticsearch-certs
               mountPath: /usr/share/logstash/config/certs
