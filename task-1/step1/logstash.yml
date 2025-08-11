@@ -37,7 +37,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: quickstart-ls-default-quickstart-logstash-user
-                  key: ES_PASSWORD
+                  key: elastic
           volumeMounts:
             - name: elasticsearch-certs
               mountPath: /usr/share/logstash/config/certs
