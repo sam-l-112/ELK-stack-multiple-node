@@ -57,29 +57,66 @@ spec:
   #             mountPath: /usr/share/logstash/config/certs
   #             readOnly: true
   
+  # podTemplate:
+  #   spec:
+  #     containers:
+  #       - name: logstash
+  #         env:
+  #           - name: ES_PASSWORD
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: logstash-es-creds
+  #                 key: ES_PASSWORD
+  #         volumeMounts:
+  #           - name: ca
+  #             mountPath: /usr/share/logstash/config/certs
+  #             readOnly: true
+  #           - name: pipeline-files
+  #             mountPath: /usr/share/logstash/pipeline
+  #     volumes:
+  #       - name: ca
+  #         secret:
+  #           secretName: logstash-ca
+  #       - name: pipeline-files
+  #         configMap:
+  #           name: logstash-pipeline-files
+
+  # podTemplate:
+  # spec:
+  #   containers:
+  #     - name: logstash
+  #       volumeMounts:
+  #         - name: elasticsearch-certs
+  #           mountPath: /usr/share/logstash/config/certs
+  #           readOnly: true
+  #   volumes:
+  #     - name: elasticsearch-certs
+  #       secret:
+  #         secretName: quickstart-es-http-certs-public
+
   podTemplate:
-    spec:
-      containers:
-        - name: logstash
-          env:
-            - name: ES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logstash-es-creds
-                  key: ES_PASSWORD
-          volumeMounts:
-            - name: ca
-              mountPath: /usr/share/logstash/config/certs
-              readOnly: true
-            - name: pipeline-files
-              mountPath: /usr/share/logstash/pipeline
-      volumes:
-        - name: ca
-          secret:
-            secretName: logstash-ca
-        - name: pipeline-files
-          configMap:
-            name: logstash-pipeline-files
+  spec:
+    containers:
+      - name: logstash
+        env:
+          - name: ES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: logstash-es-creds
+                key: ES_PASSWORD
+        volumeMounts:
+          - name: elasticsearch-certs
+            mountPath: /usr/share/logstash/config/certs
+            readOnly: true
+          - name: pipeline-files
+            mountPath: /usr/share/logstash/pipeline
+    volumes:
+      - name: elasticsearch-certs
+        secret:
+          secretName: quickstart-es-http-certs-public
+      - name: pipeline-files
+        configMap:
+          name: logstash-pipeline-files
 
   config:
     log.level: info
