@@ -80,12 +80,15 @@ spec:
         }
   
 
-
-
-
-
-
 ---
+apiVersion: v1
+data:
+  ES_PASSWORD: base64密碼
+kind: Secret
+metadata:
+  name: quickstart-ls-default-quickstart-logstash-user
+  namespace: default
+type: Opaque
 # apiVersion: v1
 # kind: Secret
 # metadata:
