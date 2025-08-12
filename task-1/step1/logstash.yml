@@ -47,12 +47,31 @@ spec:
           elasticsearch {
             hosts => ["${QS_ES_HOSTS}"]
             index => "logstash-%{+YYYY.MM.dd}"
-            user => "elastic"
+            user => "${QS_ES_USER}"
             password => "${QS_ES_PASSWORD}"
             cacert => "${QS_ES_SSL_CERTIFICATE_AUTHORITY}"
           }
         }
-  
+  podTemplate:
+    metadata:
+      labels:
+        app: logstash
+      annotations:
+        prometheus.io/scrape: "true" # Enable Prometheus scraping
+        prometheus.io/port: "9600" # Logstash monitoring port
+    spec:
+      containers:
+        - name: logstash
+          resources:
+            requests:
+              cpu: "1" # 2 CPU cores for stress testing
+              memory: "4Gi" # 4GB memory
+            limits:
+              cpu: "2" # Allow up to 4 CPU cores
+              memory: "8Gi" # Allow up to 8GB memory
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms2g -Xmx4g" # JVM heap settings for high throughput
 
 
 # podTemplate:
