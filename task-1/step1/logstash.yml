@@ -30,8 +30,8 @@ spec:
             - name: ES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: quickstart-ls-default-quickstart-logstash-user
-                  key: ES_PASSWORD
+                  name: quickstart-es-elastic-user
+                  key: elastic
           volumeMounts:
             - name: elasticsearch-certs
               mountPath: /usr/share/logstash/config/certs
@@ -51,12 +51,13 @@ spec:
     path.config: /usr/share/logstash/pipeline
   pipelines:
     - pipeline.id: main
+      pipeline.workers: 4
       config.string: |
         input {
           generator {
             message => "Hello world!"
             count => 0
-            threads => 10
+            threads => 10000
           }
           beats {
             port => 5044
@@ -64,7 +65,7 @@ spec:
         }
         output {
           elasticsearch {
-             hosts => ["https://quickstart-es-http.default.svc:9200"]
+            hosts => ["https://quickstart-es-http.default.svc:9200"]
             index => "logstash-%{+YYYY.MM.dd}"
             user => "elastic"
             password => "${ES_PASSWORD}"
