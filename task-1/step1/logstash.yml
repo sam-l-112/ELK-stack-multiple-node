@@ -6,6 +6,7 @@ metadata:
 spec:
   version: 8.16.1
   count: 3
+  count: 3
 
   elasticsearchRefs:
     - name: quickstart
@@ -49,6 +50,13 @@ spec:
   config:
     log.level: info
     path.config: /usr/share/logstash/pipeline
+    #path.config: /usr/share/logstash/pipeline
+    queue.type: persisted # Enable persistent queue to handle backpressure
+    # queue.type: memory
+    queue.max_bytes: 4gb # Increase queue size for high throughput
+    pipeline.batch.size: 125 # Default batch size for Elasticsearch output
+    pipeline.batch.delay: 50 # Delay in ms for batching
+
   pipelines:
     - pipeline.id: main
       pipeline.workers: 4
