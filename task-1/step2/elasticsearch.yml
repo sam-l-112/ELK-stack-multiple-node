@@ -7,7 +7,7 @@ spec:
   version: 8.16.1
   nodeSets:
   - name: master-node
-    count: 1
+    count: 3
     config:
       node.roles: ["master"]
       cluster.name: "quickstart"
@@ -26,7 +26,7 @@ spec:
           storageClassName: standard
 
   - name: data-nodes
-    count: 1
+    count: 3
     config:
       node.roles: ["data" , "ingest", "ml"]
     volumeClaimTemplates:
