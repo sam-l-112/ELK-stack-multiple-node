@@ -4,7 +4,7 @@ metadata:
   name: quickstart-ls
   namespace: default
 spec:
-  version: 8.16.1
+  version: 8.19.2
   count: 3
 
   elasticsearchRefs:
@@ -79,6 +79,7 @@ spec:
             value: "-Xms2g -Xmx4g" # JVM heap settings for high throughput
   
 
+
   # podTemplate:
   #   spec:
   #     containers:
@@ -102,3 +103,79 @@ spec:
   #       - name: pipeline-files
   #         configMap:
   #           name: logstash-pipeline-files
+# apiVersion: logstash.k8s.elastic.co/v1alpha1
+# kind: Logstash
+# metadata:
+#   name: quickstart-ls
+#   namespace: default
+# spec:
+#   version: 8.16.1
+#   count: 1
+
+#   elasticsearchRefs:
+#     - name: quickstart
+#       namespace: default
+#       clusterName: es-default
+
+#   services:
+#     - name: beats
+#       service:
+#         spec:
+#           type: ClusterIP
+#           ports:
+#             - port: 5044
+#               name: "filebeat"
+#               protocol: TCP
+
+#   podTemplate:
+#     spec:
+#       containers:
+#         - name: logstash
+#           env:
+#             - name: ES_PASSWORD
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: quickstart-es-elastic-user
+#                   key: elastic
+#           volumeMounts:
+#             - name: elasticsearch-certs
+#               mountPath: /usr/share/logstash/config/certs
+#               readOnly: true
+#             - name: pipeline-files
+#               mountPath: /usr/share/logstash/pipeline
+#       volumes:
+#         - name: elasticsearch-certs
+#           secret:
+#             secretName: quickstart-ls-logstash-es-default-quickstart-ca
+#         - name: pipeline-files
+#           configMap:
+#             name: logstash-pipeline-files
+
+#   config:
+#     log.level: info
+#     path.config: /usr/share/logstash/pipeline
+#   pipelines:
+#     - pipeline.id: main
+#       pipeline.workers: 4
+#       config.string: |
+#         input {
+#           generator {
+#             message => "Hello world!"
+#             count => 0
+#             threads => 10000
+#           }
+#           beats {
+#             port => 5044
+#           }
+#         }
+#         output {
+#           elasticsearch {
+#             hosts => ["https://quickstart-es-http.default.svc:9200"]
+#             index => "logstash-%{+YYYY.MM.dd}"
+#             user => "elastic"
+#             password => "${ES_PASSWORD}"
+#             ssl => true
+#             cacert => "/usr/share/logstash/config/certs/ca.crt"
+#           }
+#         }                                                                          1,11          Top
+
