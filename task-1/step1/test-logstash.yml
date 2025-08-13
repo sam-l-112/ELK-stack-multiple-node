@@ -51,6 +51,7 @@ spec:
             cacert => "${QS_ES_SSL_CERTIFICATE_AUTHORITY}"
           }
         }
+        
   podTemplate:
   metadata:
     labels:
