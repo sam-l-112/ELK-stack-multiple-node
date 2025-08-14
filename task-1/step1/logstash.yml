@@ -1,7 +1,7 @@
 apiVersion: logstash.k8s.elastic.co/v1alpha1
 kind: Logstash 
 metadata:
-  name: quickstart-ls
+  name: quickstart
   namespace: default
 spec:
   version: 8.19.2
