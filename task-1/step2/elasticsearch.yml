@@ -7,9 +7,13 @@ spec:
   version: 8.16.1
   nodeSets:
   - name: master-node
-    count: 1
+    count: 3
     config:
       node.roles: ["master"]
+      cluster.name: "quickstart"
+      # 這裡用 headless service 名稱，不用帶 pod 名稱
+      discovery.seed_hosts: ["quickstart-es-master-node"]
+      cluster.initial_master_nodes: ["quickstart-es-master-node-0"]
     volumeClaimTemplates:
       - metadata:
           name: elasticsearch-data
@@ -21,24 +25,131 @@ spec:
               storage: 10Gi
           storageClassName: standard
 
-  - name: data-node
-    count: 1
+  - name: data-nodes
+    count: 3
     config:
-      node.roles: ["data", "ingest", "ml"]
-      # 指定此 nodeSet 的 Pod 只會被排程到指定的節點（node-data-5361855-iaas.novalocal）
-      # 這樣可以確保 data-node 只會在特定主機上運行，通常用於本地存儲或特殊硬體需求
-      # nodeSelector 需與 PV 的 nodeAffinity 設定一致，才能正確綁定 PVC
-    podTemplate:
-      spec:
-        nodeSelector:
-          kubernetes.io/hostname: node-data-5361855-iaas.novalocal  # change here
+      node.roles: ["data" , "ingest", "ml"]
     volumeClaimTemplates:
     - metadata:
         name: elasticsearch-data
       spec:
         accessModes:
-          - ReadWriteOnce
+        - ReadWriteOnce
         resources:
           requests:
             storage: 1000Gi
         storageClassName: standard
+
+
+# ---
+# apiVersion: elasticsearch.k8s.elastic.co/v1
+# kind: Elasticsearch
+# metadata:
+#   name: quickstart
+# spec:
+#   version: 8.16.1
+#   nodeSets:
+#   - name: master-nodes
+#     count: 1
+#     config:
+#       node.roles: ["master"]
+#     volumeClaimTemplates:
+#     - metadata:
+#         name: elasticsearch-data
+#       spec:
+#         accessModes:
+#         - ReadWriteOnce
+#         resources:
+#           requests:
+#             storage: 10Gi
+#         storageClassName: standard
+
+# ---
+# apiVersion: elasticsearch.k8s.elastic.co/v1
+# kind: Elasticsearch
+# metadata:
+#   name: quickstart
+# spec:
+#   version: 8.16.1
+#   nodeSets:
+#   - name: master-node
+#     count: 3
+#     config:
+#       node.roles: ["master"]
+#       cluster.name: "quickstart"
+#       # 這裡用 headless service 名稱，不用帶 pod 名稱
+#       discovery.seed_hosts: ["quickstart-es-master-node"]
+#       cluster.initial_master_nodes: ["quickstart-es-master-node-0"]
+#     volumeClaimTemplates:
+#       - metadata:
+#           name: elasticsearch-data
+#         spec:
+#           accessModes:
+#             - ReadWriteOnce
+#           resources:
+#             requests:
+#               storage: 10Gi
+#           storageClassName: standard
+
+  # - name: data-node
+  #   count: 3
+  #   config:
+  #     node.roles: ["data" , "ingest" , "ml"]
+  #     cluster.name: "quickstart"  
+  #     # 集群名稱
+  #     discovery.seed_hosts: ["quickstart-es-master-node"]
+  #     #cluster.initial_master_nodes: ["quickstart-es-master-node-0"] # 用於發現 master 節點
+  #     # 指定此 nodeSet 的 Pod 只會被排程到指定的節點（node-data-5361855-iaas.novalocal）
+  #     # 這樣可以確保 data-node 只會在特定主機上運行，通常用於本地存儲或特殊硬體需求
+  #     # nodeSelector 需與 PV 的 nodeAffinity 設定一致，才能正確綁定 PVC
+  #   podTemplate:
+  #     spec:
+  #       nodeSelector:
+  #         kubernetes.io/hostname: data node name  
+  #         # change here ✅正確的 master node hostname
+  #       securityContext:  
+  #       # 設定 Pod 的安全上下文
+  #         runAsUser: 1000
+  #         runAsGroup: 1000
+  #         fsGroup: 1000
+  #       initContainers:
+  #       - name: fix-permissions
+  #         image: busybox
+  #         command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+  #         volumeMounts:
+  #         - name: elasticsearch-data
+  #           mountPath: /usr/share/elasticsearch/data  
+  #           # 挂载数据卷到容器内
+  #   volumeClaimTemplates:
+  #   - metadata:
+  #       name: elasticsearch-data
+  #     spec:
+  #       accessModes:
+  #         - ReadWriteOnce
+  #       resources:
+  #         requests:
+  #           storage: 1000Gi
+  #       storageClassName: standard
+
+#       # 指定使用的 StorageClass，以選擇動態供應或靜態 PV
+#       # storageClassName: standard
+#       # 這裡的 storageClassName 必須與 PVC 的 storageClassName
+#       # 相同，否則 Pod 可能無法正確綁定到 PVC
+#       # 並且 Pod 可能會因為找不到資料卷而無法啟動
+#       # 如果不指定 storageClassName，則會使用叢集的預設 StorageClass
+#       # 這樣可以確保 Pod 啟動時能夠正確掛載資料卷
+#       # 並且可以在 Pod 啟動後自動創建 PVC
+#       # 這樣可以確保 Pod 啟動時能夠正確掛載資料卷
+    # podTemplate:
+    #   spec:
+    #     securityContext:
+    #       runAsUser: 1000
+    #       runAsGroup: 1000
+    #       fsGroup: 1000
+    #     initContainers:
+    #     - name: fix-permissions
+    #       image: busybox
+    #       command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+    #       volumeMounts:
+    #       - name: elasticsearch-data
+    #         mountPath: /usr/share/elasticsearch/data
