@@ -58,6 +58,12 @@
         state: directory
         mode: "0755"
 
+    - name: 設定 /etc/rancher/k3s/k3s.yaml 權限
+      file:
+        path: /etc/rancher/k3s/k3s.yaml
+        mode: "0644"
+      become: true
+
     - name: 讀取 node-token
       shell: sudo cat /var/lib/rancher/k3s/server/node-token
       register: node_token
@@ -138,8 +144,8 @@
   gather_facts: false
   vars:
     ansible_user: ubuntu
-    k3s_token: "{{ hostvars[groups['k3s_server'][0]].node_token.stdout }}" # 從 k3s server 獲取 token
-    k3s_server: "{{ groups['k3s_server'] | first }}"  # 獲取第一個 k3s server 的 IP
+    k3s_token: "{{ hostvars[groups['all'][0]].node_token.stdout }}" # 從 k3s server 獲取 token
+    k3s_server: "{{ groups['all'][0] }}"  # 獲取第一個 k3s server 的 IP | first
     # 移除 k3s_agent_ip_1, k3s_agent_ip_2，直接在 debug 用 inventory_hostname
   tasks:
     - name: Remove old k3s if exists
@@ -156,7 +162,7 @@
     #   ignore_errors: yes
 
     - name: 確認 k3s server 6443 port 是否可連線
-      shell: curl -ksSfL https://{{ k3s_server }}:6443 || echo "fail"
+      shell: curl -ksSfL https://{{ groups['all'][0] }}:6443 || echo "fail"
       register: k3s_server_connection
       ignore_errors: yes
 
@@ -166,7 +172,7 @@
 
     - name: Install k3s agent using official script
       shell: |
-        curl -sfL https://get.k3s.io | K3S_URL="https://{{ k3s_server }}:6443" K3S_TOKEN="{{ k3s_token }}" sh -
+        curl -sfL https://get.k3s.io | K3S_URL="https://{{ k3s_server }}:6443" K3S_TOKEN="{{ k3s_token }}" K3S_NODE_NAME=VM{{ ansible_play_hosts.index(inventory_hostname) }} sh -
       args:
         creates: /usr/local/bin/k3s
 
@@ -181,7 +187,7 @@
     - name: 確認 agent 是否啟動
       debug:
         msg: "{{ item }} K3s Agent is running"
-      loop: "{{ groups['k3s_agent'] }}"
+      loop: "{{ groups['all'][1:] }}"
 
 # 1. 從 server 拉 kubeconfig 到本機
 - name: Fetch kubeconfig from k3s server
@@ -199,7 +205,7 @@
   hosts: all[1:]
   become: true
   vars:
-    k3s_server: "{{ groups['k3s_server'] | first }}"
+    k3s_server: "{{ groups['all'][0] }}"
   tasks:
     - name: Ensure .k3s directory exists on agent
       file:
@@ -221,7 +227,7 @@
       replace:
         path: /home/ubuntu/.k3s/k3s.yaml
         regexp: 'server: https://127.0.0.1:6443'
-        replace: 'server: https://{{ k3s_server }}:6443'
+        replace: "server: https://{{ groups['all'][0] }}:6443"
         owner: ubuntu
         group: ubuntu
         mode: '0644'

@@ -1,0 +1,20 @@
+- name: Setup mgmt
+  hosts: all
+  gather_facts: no
+  become: yes
+  become_user: root
+  tasks:
+- import_playbook: /home/ubuntu/ELK-stack-multiple-node/ansible/playbooks/install_k3s0.yaml
+- import_playbook: /home/ubuntu/ELK-stack-multiple-node/ansible/playbooks/playbook.yml
+    # - block:
+    #     - setup:
+    #     - service_facts:
+    #     - include_vars: '{{ item }}'
+    #       with_items:
+    #         - vars/main.yml
+    #         - vars/syslog.yml
+    # - import_role:
+    #     name: global-handlers
+    # - import_role:
+    #     name: elasticsearch
+    #   when: (service_role is undefined) or (service_role == "elasticsearch")

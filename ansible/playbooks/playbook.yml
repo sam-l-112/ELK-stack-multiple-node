@@ -10,8 +10,8 @@
         group: 1000
         mode: '0770'
         recurse: true
-      when: inventory_hostname in groups['k3s_server']
-    
+      # when: inventory_hostname in groups['k3s_server']
+
     - name: Create data PVC directory
       file:
         path: /home/ubuntu/ELK-stack-multiple-node/task-1/step2/pvc-data/
@@ -20,4 +20,4 @@
         group: 1000
         mode: '0770'
         recurse: true
-      when: inventory_hostname in groups['k3s_agent']
+      # when: inventory_hostname in groups['k3s_agent']
