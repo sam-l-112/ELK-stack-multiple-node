@@ -21,7 +21,7 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - VM0
+          - k3s-master
           # change here   ✅正確的 master node hostname
   claimRef:
     name: elasticsearch-data-quickstart-es-master-node-0
@@ -50,7 +50,7 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - VM1
+          - vm0
           # change here   ✅正確的 master node hostname
   claimRef:
     name: elasticsearch-data-quickstart-es-master-node-1
@@ -79,7 +79,7 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - VM2
+          - vm1
           # change here   ✅正確的 master node hostname
   claimRef:
     name: elasticsearch-data-quickstart-es-master-node-2
@@ -108,7 +108,7 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - VM0
+          - k3s-master
           # change here   ✅正確的 data node hostname
 
 
@@ -135,7 +135,7 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - VM1
+          - vm0
           # change here   ✅正確的 data node hostname
 
 
@@ -162,5 +162,5 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - VM2
+          - vm1
           # change here   ✅正確的 data node hostname
